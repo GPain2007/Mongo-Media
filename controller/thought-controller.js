@@ -1,15 +1,47 @@
 const { Thought, User } = require("../models");
 
 const thoughtController = {
+  //get all thoughts
+  getAllThoughts(req, res) {
+    Thought.find({})
+      .populate({
+        path: "reaction",
+        select: "-__v",
+      })
+      .select("-__v")
+      .sort({ _id: -1 })
+      .then((dbUserData) => res.json(dbUserData))
+      .catch((err) => {
+        console.log(err);
+        res.status(400).json(err);
+      });
+  },
+
+  //get a single thought
+  getThoughtById(req, res) {
+    Thought.findOne({})
+      .populate({
+        path: "reaction",
+        select: "-__v",
+      })
+      .select("-__v")
+      .sort({ _id: -1 })
+      .then((dbUserData) => res.json(dbUserData))
+      .catch((err) => {
+        console.log(err);
+        res.status(400).json(err);
+      });
+  },
+
   // add thought to user
   addThought({ params, body }, res) {
     console.log(body);
     Thought.create(body)
-      .then(({ _id }) => {
+      .then((dbThoughtData) => {
         return User.findOneAndUpdate(
-          { _id: params.userId },
-          { $pull: { thought: params.thoughtId } },
-          { new: true, runValidators: true }
+          { _id: body.userId },
+          { $push: { thoughts: dbThoughtData._id } },
+          { new: true }
         );
       })
       .then((dbUserData) => {
